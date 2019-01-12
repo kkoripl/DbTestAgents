@@ -51,7 +51,7 @@
                     <arguments>
                         <argument>-classpath</argument>
                         <classpath />
-                        <argument>sag_projekt.AkkaQuickstart</argument>
+                        <argument>sag_projekt.DbTestsSystem</argument>
                     </arguments>
                 </configuration>
             </plugin>
