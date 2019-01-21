@@ -3,7 +3,6 @@ package sag_projekt.agents.tester;
 import akka.actor.*;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import sag_projekt.agents.SystemInitiator;
 import sag_projekt.agents.reporter.messages.AllTestersReadyToTalk;
 import sag_projekt.agents.reporter.messages.YouWereFirstReady;
 import sag_projekt.agents.tester.actions.DatabaseInvestigation;
@@ -18,6 +17,7 @@ import sag_projekt.contractNetProtocol.messages.participant.Propose;
 import sag_projekt.contractNetProtocol.messages.participant.Refuse;
 import sag_projekt.systemMessages.StartInvestigating;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +37,7 @@ public class Tester extends AbstractActor {
     private Map<ActorRef, Propose> gotProposals = new HashMap<>();
     private int cfpRepliesNo = 0;
     private int actualNegotiationTurn = 0;
+    private Cancellable waitForMessagesScheduler;
 
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
@@ -60,16 +61,16 @@ public class Tester extends AbstractActor {
                 .match(AllTestersReadyToTalk.class, atrtt -> checkIfstartProtocol())
                 .match(Cfp.class, cfp -> makeReplyForCfp(cfp, getSender()))
                 .match(Refuse.class, ref -> {
-                    cfpRepliesNo++;
-                    if(TesterUtils.gotAllProposals(cfpRepliesNo, otherTesters.size())){
-                        sendDecisions();
-                    }
+//                    cfpRepliesNo++;
+//                    if(TesterUtils.gotAllProposals(cfpRepliesNo, otherTesters.size())){
+//                        sendDecisions();
+//                    }
                 })
                 .match(Propose.class, prop -> {
                     addProposal(prop, getSender());
-                    if(TesterUtils.gotAllProposals(cfpRepliesNo, otherTesters.size())){
-                        sendDecisions();
-                    }
+//                    if(TesterUtils.gotAllProposals(cfpRepliesNo, otherTesters.size())){
+//                        sendDecisions();
+//                    }
                 })
                 .match(AcceptProposal.class, acc -> sendResultToReporter())
                 .match(WhichNegotiationTurnToStart.class, wntts -> {
@@ -126,6 +127,12 @@ public class Tester extends AbstractActor {
         for(ActorRef tester : otherTesters){
             tester.tell(new Cfp(getMyResultForTurn(turn), this.dbName, turn),getSelf());
         }
+        waitForMessagesScheduler = makeWaitForMessagesScheduler(1);
+    }
+
+    private Cancellable makeWaitForMessagesScheduler(int waitTimeInSeconds){
+        return getContext().getSystem().scheduler()
+                .scheduleOnce(Duration.ofSeconds(waitTimeInSeconds),this::sendDecisions, getContext().getSystem().dispatcher());
     }
 
     private double getMyResultForTurn(int turn){
@@ -148,13 +155,15 @@ public class Tester extends AbstractActor {
     }
 
     private void addProposal(Propose proposal, ActorRef sender){
-        cfpRepliesNo++;
+//        cfpRepliesNo++;
         log.info("[" + dbName + "] Got Proposal: " + proposal.getMessage());
         gotProposals.put(sender, proposal);
     }
 
     private void sendDecisions(){
-        cfpRepliesNo = 0;
+//        cfpRepliesNo = 0;
+        waitForMessagesScheduler.cancel();
+        waitForMessagesScheduler = null;
         if(gotProposals.size() == 0) {
             log.info("[" + dbName + "] No better decisions I'm starting still!");
             sendAllRejects();
@@ -199,6 +208,7 @@ public class Tester extends AbstractActor {
 
     public void endNegotiations(){
         log.info("[" + dbName + "] NEGOTIATIONS'VE ENDED!!!!");
+        getContext().getSystem().terminate();
     }
 
     public void setReporter(ActorRef reporter) {
