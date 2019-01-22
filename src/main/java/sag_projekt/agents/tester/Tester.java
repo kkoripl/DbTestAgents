@@ -183,7 +183,7 @@ public class Tester extends AbstractActor {
 
     private void sendResultToReporter(){
         log.info("[" + dbName + "] I'm best! Sending result to reporter! : " + getMyResultForTurn(actualNegotiationTurn));
-        reporter.tell(new BestResult(dbName, getMyResultForTurn(actualNegotiationTurn)),getSelf());
+        reporter.tell(new BestResult(dbName, getMyResultForTurn(actualNegotiationTurn), DatabaseInvestigation.investigationActions.get(actualNegotiationTurn)),getSelf());
     }
 
     private void sendDecisionsToTesters(){

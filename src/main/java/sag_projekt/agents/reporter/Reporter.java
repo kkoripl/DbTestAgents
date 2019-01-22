@@ -92,7 +92,7 @@ public class Reporter extends AbstractActor {
         // W Best Result jest aktualnie nazwa zwyciezcy, ktora jest nazwa bazy
         // jesli bedziemy sprawdzac po liczbie rekordow ze slowem to wtedy trzeba w inicjacji aktorow podmienic bazy na slowa
         log.info("[REPORTER] Got Best result to fill in protocol!!!!");
-        log.info("------------------> from: " + result.getBestResultSenderName() + " result: " + result.getResult());
+        log.info("------------------> from: " + result.getBestResultSenderName() + " result: " + result.getResult() + ", query: " + result.getQuery());
     }
 
     private void sendWhichTurnToStart(ActorRef nextNegotiationTurnStarter){
