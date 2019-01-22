@@ -7,7 +7,8 @@ import java.util.*;
 
 public class DatabaseInvestigation{
     private List<Long> investigationResults;
-    static public List<String> investigationActions = Arrays.asList("SELECT * FROM articles_100;", "SELECT * FROM articles_k;");
+    static public List<String> investigationActions = Arrays
+            .asList("SELECT * FROM articles_100;", "SELECT * FROM articles_k;", "SELECT * FROM articles_10k;");
 
     public DatabaseInvestigation(String dbToInvestigate) {
         makeDBInvestigation(dbToInvestigate);
@@ -68,7 +69,7 @@ public class DatabaseInvestigation{
     private Connection getPostgreSQLConnection() {
         Connection connection = null;
         try {
-            connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "toor");
+            connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/mydb", "postgres", "toor");
         } catch (SQLException e) {
             e.printStackTrace();
         }
