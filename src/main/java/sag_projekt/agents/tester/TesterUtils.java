@@ -16,18 +16,21 @@ public class TesterUtils {
     }
 
     public static ActorRef getBestProposalSender(Map<ActorRef, Propose> proposals){
-        Map<ActorRef, Propose> sortedProposals = new TreeMap<ActorRef, Propose>(proposals); //@TOdO: sortowanie od najmniejszej do najwiekszej propozycji
-                                                                                      // jesli w propozycji bedzie czas realizacji selecta, to zostawic jak jest
-                                                                                      // jesli zostaniemy przy wyrazie i liczbie zebranych wierszy to trzeba sortowac odwrotnie
-
-        return getFirstSenderFromSortedProposals(sortedProposals).getKey();
-    }
-
-    private static Map.Entry<ActorRef, Propose> getFirstSenderFromSortedProposals(Map<ActorRef, Propose> proposals){
+        ActorRef winner = null;
+        // get first as default
         for(Map.Entry<ActorRef, Propose> proposal : proposals.entrySet()){
-            return proposal; // zwracamy tylko pierwszy - najlepszy proposal
+            winner = proposal.getKey();
+            break;
         }
-        return null; // zaslepka
+        double bestTime = Double.MAX_VALUE;
+        for (Map.Entry<ActorRef, Propose> proposal : proposals.entrySet()) {
+            if (proposal.getValue().getMessage() < bestTime) {
+                bestTime = proposal.getValue().getMessage();
+                winner = proposal.getKey();
+            }
+        }
+
+        return winner;
     }
 
     public static boolean isBestSender(ActorRef bestSender, ActorRef senderChecked){

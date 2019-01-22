@@ -6,10 +6,7 @@ import akka.event.LoggingAdapter;
 import sag_projekt.agents.reporter.messages.AllTestersReadyToTalk;
 import sag_projekt.agents.reporter.messages.YouWereFirstReady;
 import sag_projekt.agents.tester.actions.DatabaseInvestigation;
-import sag_projekt.agents.tester.messages.BestResult;
-import sag_projekt.agents.tester.messages.NewSiblingToAdd;
-import sag_projekt.agents.tester.messages.ReadyToTalk;
-import sag_projekt.agents.tester.messages.WhichNegotiationTurnToStart;
+import sag_projekt.agents.tester.messages.*;
 import sag_projekt.contractNetProtocol.messages.initiator.AcceptProposal;
 import sag_projekt.contractNetProtocol.messages.initiator.Cfp;
 import sag_projekt.contractNetProtocol.messages.initiator.RejectProposal;
@@ -81,6 +78,13 @@ public class Tester extends AbstractActor {
                         endNegotiations();
                     }
                 })
+                .match(SiblingsTurnNotification.class, wntts -> {
+                    if(wasntLastNegotiationTurn(wntts.getTurn())){
+                        setActualNegotiationTurn(wntts.getTurn());
+                    } else {
+                        endNegotiations();
+                    }
+                })
                 .build();
     }
 
@@ -125,6 +129,7 @@ public class Tester extends AbstractActor {
     private void sendCfpForNegotiationTurn(int turn){
         log.info("[" + dbName + "] Sending CFPs For turn: " + Integer.toString(turn ) + " Value: " + Double.toString(getMyResultForTurn(turn)));
         for(ActorRef tester : otherTesters){
+            tester.tell(new SiblingsTurnNotification(turn), getSelf());
             tester.tell(new Cfp(getMyResultForTurn(turn), this.dbName, turn),getSelf());
         }
         waitForMessagesScheduler = makeWaitForMessagesScheduler(1);
@@ -142,10 +147,10 @@ public class Tester extends AbstractActor {
     private void makeReplyForCfp(Cfp cfp, ActorRef sender){
         showGotCfp(cfp);
         if(TesterUtils.myResultWasBetterThanCfp(cfp.getMessage(), getMyResultForTurn(cfp.getNegotiationTurn()))){
-            log.info("[" + dbName + "] My result [" + getMyResultForTurn(cfp.getNegotiationTurn()) +"] was better! Sending Propose!");
+            log.info("[" + dbName + "] My result [" + getMyResultForTurn(cfp.getNegotiationTurn()) +"] in turn " + cfp.getNegotiationTurn() + " was better! Sending Propose!");
             sender.tell(new Propose(getMyResultForTurn(cfp.getNegotiationTurn())), getSelf());
         } else {
-            log.info("[" + dbName + "] My result [" + getMyResultForTurn(cfp.getNegotiationTurn()) +"]was worse! Sending Refuse!");
+            log.info("[" + dbName + "] My result [" + getMyResultForTurn(cfp.getNegotiationTurn()) +"] in turn " + cfp.getNegotiationTurn() + " was worse! Sending Refuse!");
             sender.tell(new Refuse(), getSelf());
         }
     }
