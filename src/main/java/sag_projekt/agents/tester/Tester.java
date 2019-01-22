@@ -33,7 +33,7 @@ public class Tester extends AbstractActor {
     private String dbName;
     private List<ActorRef> otherTesters;
     private ActorRef reporter;
-    private List<Double> investigationResults;
+    private List<Long> investigationResults;
     private Map<ActorRef, Propose> gotProposals = new HashMap<>();
     private int cfpRepliesNo = 0;
     private int actualNegotiationTurn = 0;
