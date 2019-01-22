@@ -9,6 +9,8 @@ lazy val akkaVersion = "2.5.19"
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
+  "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
+  "ch.qos.logback" % "logback-classic" % "1.0.13",
   "mysql" % "mysql-connector-java" % "8.0.13",
   "org.postgresql" % "postgresql" % "42.2.5", 
   "junit" % "junit" % "4.12")
